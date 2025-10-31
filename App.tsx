@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { Header } from './components/Header';
 import { SubHeader } from './components/SubHeader';
@@ -5,133 +6,95 @@ import { SearchBar } from './components/SearchBar';
 import { FilterButtons } from './components/FilterButtons';
 import { AdvancedFilters } from './components/AdvancedFilters';
 import { BusList } from './components/BusList';
-import { BusRoute, FilterCategory } from './types';
-import { VolcanoLogo } from './components/icons/VolcanoLogo';
-import { OnatracomLogo } from './components/icons/OnatracomLogo';
-import { StellaLogo } from './components/icons/StellaLogo';
-import { GenericBusLogo } from './components/icons/GenericBusLogo';
+import { SeatSelection } from './components/SeatSelection';
+import { FilterCategory, Bus } from './types';
 
-const initialBusRoutes: BusRoute[] = [
-  {
-    id: 1,
-    companyName: 'Volcano Express',
-    companyLogo: <VolcanoLogo />,
-    routeDisplay: 'Kigali > Rubavu',
-    departureTime: '07:00 AM',
-    price: 7000,
-    category: 'Express',
-    timeOfDay: 'Morning',
-    amenities: ['AC', 'WiFi'],
-    duration: '4h',
-    arrivalTime: '11:00 AM',
-  },
-  {
-    id: 2,
-    companyName: 'Onatracom',
-    companyLogo: <OnatracomLogo />,
-    routeDisplay: 'Kigali > Rubavu',
-    departureTime: '06:30 AM',
-    arrivalTime: '11:00 AM',
-    duration: '4h',
-    price: 8500,
-    category: 'Budget',
-    timeOfDay: 'Morning',
-    amenities: [],
-  },
-  {
-    id: 3,
-    companyName: 'Stella Express',
-    companyLogo: <StellaLogo />,
-    routeDisplay: 'Kigali > Mubavu',
-    departureTime: '08:00 AM',
-    price: 9000,
-    category: 'Luxury',
-    timeOfDay: 'Morning',
-    amenities: ['AC', 'WiFi', 'Reclining Seats'],
-  },
-    {
-    id: 4,
-    companyName: 'Volcano Express',
-    companyLogo: <VolcanoLogo />,
-    routeDisplay: 'Kigali > Rubavu',
-    departureTime: '01:30 PM',
-    price: 8000,
-    category: 'Express',
-    timeOfDay: 'Afternoon',
-    amenities: ['AC'],
-  },
-  {
-    id: 5,
-    companyName: 'Stella Express',
-    companyLogo: <StellaLogo />,
-    routeDisplay: 'Kigali > Musanze',
-    departureTime: '06:00 PM',
-    price: 9500,
-    category: 'Luxury',
-    timeOfDay: 'Evening',
-    amenities: ['AC', 'WiFi', 'Reclining Seats'],
-  },
-  {
-    id: 6,
-    companyName: 'Onatracom',
-    companyLogo: <OnatracomLogo />,
-    routeDisplay: 'Kigali > Huye',
-    departureTime: '02:00 PM',
-    price: 6500,
-    category: 'Budget',
-    timeOfDay: 'Afternoon',
-    amenities: [],
-  },
+const mockBuses: Bus[] = [
+  { id: 1, company: 'Volcano', departureTime: '07:00', arrivalTime: '09:30', duration: '2h 30m', price: 15, rating: 4.5, seatsAvailable: 23, category: 'Express' },
+  { id: 2, company: 'Onatracom', departureTime: '08:15', arrivalTime: '11:00', duration: '2h 45m', price: 12, rating: 4.2, seatsAvailable: 10, category: 'Budget' },
+  { id: 3, company: 'Stella', departureTime: '09:00', arrivalTime: '11:15', duration: '2h 15m', price: 18, rating: 4.8, seatsAvailable: 5, category: 'Luxury' },
+  { id: 4, company: 'Volcano', departureTime: '10:30', arrivalTime: '13:00', duration: '2h 30m', price: 15, rating: 4.4, seatsAvailable: 30, category: 'Express' },
+  { id: 5, company: 'Generic', departureTime: '13:00', arrivalTime: '16:00', duration: '3h 00m', price: 10, rating: 3.9, seatsAvailable: 40, category: 'Budget' },
+  { id: 6, company: 'Stella', departureTime: '14:00', arrivalTime: '16:15', duration: '2h 15m', price: 20, rating: 4.9, seatsAvailable: 12, category: 'Luxury' },
+  { id: 7, company: 'Onatracom', departureTime: '16:45', arrivalTime: '19:45', duration: '3h 00m', price: 11, rating: 4.1, seatsAvailable: 8, category: 'Budget' },
+  { id: 8, company: 'Volcano', departureTime: '18:00', arrivalTime: '20:30', duration: '2h 30m', price: 16, rating: 4.6, seatsAvailable: 15, category: 'Express' },
 ];
 
-const timeOfDayMap: { [key: number]: BusRoute['timeOfDay'] } = {
-  0: 'Morning',
-  1: 'Afternoon',
-  2: 'Evening',
-};
-
 const App: React.FC = () => {
-  const [activeFilter, setActiveFilter] = useState<FilterCategory>('Express');
   const [searchTerm, setSearchTerm] = useState('');
-  const [departureTime, setDepartureTime] = useState(0); // 0: Morning, 1: Afternoon, 2: Evening
+  const [activeFilter, setActiveFilter] = useState<FilterCategory>('All');
+  const [departureTime, setDepartureTime] = useState(1); // 0: Morning, 1: Afternoon, 2: Evening
+  const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
 
-  const filteredRoutes = useMemo(() => {
-    const selectedTimeOfDay = timeOfDayMap[departureTime];
-
-    return initialBusRoutes.filter(route => {
-      const matchesFilter = activeFilter === 'All' || route.category === activeFilter;
+  const filteredBuses = useMemo(() => {
+    return mockBuses.filter(bus => {
+      // Filter by category
+      if (activeFilter !== 'All' && bus.category !== activeFilter) {
+        return false;
+      }
       
-      const matchesSearch = searchTerm.trim() === '' || 
-        route.companyName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        route.routeDisplay.toLowerCase().includes(searchTerm.toLowerCase());
+      // Filter by departure time
+      const hour = parseInt(bus.departureTime.split(':')[0], 10);
+      if (departureTime === 0 && hour >= 12) return false; // Morning
+      if (departureTime === 1 && (hour < 12 || hour >= 18)) return false; // Afternoon
+      if (departureTime === 2 && hour < 18) return false; // Evening
 
-      const matchesTime = route.timeOfDay === selectedTimeOfDay;
-      
-      return matchesFilter && matchesSearch && matchesTime;
+      // Filter by search term (mocking city name)
+      // For this demo, we assume the search term applies to all buses if not empty
+      // In a real app, this would filter based on departure/arrival locations
+      if (searchTerm && !'Kigali'.toLowerCase().includes(searchTerm.toLowerCase())) {
+          // This is a dummy check. A real app would have departure locations on the bus object.
+          // return false; 
+      }
+
+      return true;
     });
-  }, [activeFilter, searchTerm, departureTime]);
+  }, [activeFilter, departureTime, searchTerm]);
 
-  const handleClearCategoryFilter = () => {
+  const handleClearFilters = () => {
     setActiveFilter('All');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#FFF0E6] to-[#FFE6D5] font-sans">
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="bg-gray-50 min-h-screen font-sans">
+      <div 
+        className="absolute top-0 left-0 w-full h-[500px] bg-cover bg-center" 
+        style={{backgroundImage: "url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')"}}
+      >
+        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-gray-50/0"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent"></div>
+      </div>
+      
+      <div className="relative container mx-auto px-4 py-8">
         <Header />
         <main>
           <SubHeader />
           <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           <FilterButtons activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
-          <AdvancedFilters 
-            activeFilter={activeFilter} 
-            departureTime={departureTime}
-            setDepartureTime={setDepartureTime}
-            onFilterClear={handleClearCategoryFilter}
-          />
-          <BusList routes={filteredRoutes} />
+          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg -mt-8 pt-12 pb-6">
+             <AdvancedFilters 
+                activeFilter={activeFilter}
+                departureTime={departureTime}
+                setDepartureTime={setDepartureTime}
+                onFilterClear={handleClearFilters}
+             />
+             <BusList buses={filteredBuses} onSelectBus={setSelectedBus} />
+          </div>
         </main>
       </div>
+
+      {selectedBus && (
+        <SeatSelection bus={selectedBus} onClose={() => setSelectedBus(null)} />
+      )}
+       <style>{`
+        @keyframes fade-in-up {
+          from { opacity: 0; transform: translateY(20px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fade-in-up {
+          animation: fade-in-up 0.5s ease-out forwards;
+        }
+      `}</style>
     </div>
   );
 };

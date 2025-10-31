@@ -1,54 +1,65 @@
+
 import React from 'react';
-import { BusRoute } from '../types';
+import { Bus } from '../types';
+import { VolcanoLogo } from './icons/VolcanoLogo';
+import { OnatracomLogo } from './icons/OnatracomLogo';
+import { StellaLogo } from './icons/StellaLogo';
+import { GenericBusLogo } from './icons/GenericBusLogo';
+import { StarIcon } from './icons/StarIcon';
 
 interface BusCardProps {
-  route: BusRoute;
+  bus: Bus;
+  onSelect: (bus: Bus) => void;
 }
 
-export const BusCard: React.FC<BusCardProps> = ({ route }) => {
-  const { companyName, companyLogo, routeDisplay, departureTime, duration, price, arrivalTime } = route;
+const CompanyLogo: React.FC<{ company: Bus['company'] }> = ({ company }) => {
+    switch (company) {
+        case 'Volcano': return <VolcanoLogo />;
+        case 'Onatracom': return <OnatracomLogo />;
+        case 'Stella': return <StellaLogo />;
+        default: return <GenericBusLogo />;
+    }
+};
 
-  const renderOnatracomCard = () => (
-    <div className="text-left">
-        <p className="text-sm font-semibold text-gray-500">
-            ROUTE: <span className="text-gray-800 font-bold">{routeDisplay}</span>
-        </p>
-        <p className="text-sm font-semibold text-gray-500 mt-1">
-            TIME: <span className="text-gray-800 font-bold">{companyName === 'Onatracom' ? '07:00 AM - 11:00 AM' : `${departureTime} - ${arrivalTime}`} ({duration})</span>
-        </p>
-        <p className="text-sm font-semibold text-gray-500 mt-1">
-            Departs: <span className="text-gray-800 font-bold">{departureTime}</span>
-        </p>
-    </div>
-  );
-
-  const renderDefaultCard = () => (
-    <div className="text-center">
-        <p className="text-lg font-bold text-gray-800">{routeDisplay}</p>
-        <p className="text-gray-500 mt-2">Departs: {departureTime}</p>
-    </div>
-  );
-
+export const BusCard: React.FC<BusCardProps> = ({ bus, onSelect }) => {
   return (
-    <div className="bg-white rounded-3xl shadow-lg overflow-hidden transition-transform duration-300 hover:scale-105 hover:shadow-xl flex flex-col">
-      <div className="p-6 bg-white">
-        <div className="h-16 flex items-center justify-center mb-4">
-            {companyLogo}
+    <div className="bg-white rounded-2xl shadow-lg hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col md:flex-row items-center p-4 gap-4">
+        <div className="w-full md:w-1/4 flex items-center justify-center p-4">
+             <CompanyLogo company={bus.company} />
         </div>
-      </div>
-      <div className="p-6 pt-0 flex-grow flex flex-col justify-between">
-        <div>
-            {companyName === 'Onatracom' ? renderOnatracomCard() : renderDefaultCard()}
+        <div className="w-full md:w-3/4 flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col md:flex-row items-center text-center md:text-left gap-4 md:gap-8">
+                <div>
+                    <p className="text-xl font-bold text-gray-800">{bus.departureTime}</p>
+                    <p className="text-sm text-gray-500">Kigali</p>
+                </div>
+                <div className="text-center">
+                    <p className="text-xs text-gray-500">{bus.duration}</p>
+                    <div className="w-24 h-px bg-gray-300 my-1"></div>
+                    <p className="text-xs text-orange-500 font-semibold">{bus.category}</p>
+                </div>
+                <div>
+                    <p className="text-xl font-bold text-gray-800">{bus.arrivalTime}</p>
+                    <p className="text-sm text-gray-500">Musanze</p>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-2">
+                <StarIcon className="w-5 h-5 text-yellow-400" />
+                <span className="font-bold text-gray-700">{bus.rating.toFixed(1)}</span>
+            </div>
+
+            <div className="text-center md:text-right">
+                <p className="text-2xl font-bold text-orange-600">${bus.price.toFixed(2)}</p>
+                <p className="text-xs text-gray-500">{bus.seatsAvailable} seats available</p>
+            </div>
+             <button
+                onClick={() => onSelect(bus)} 
+                className="w-full md:w-auto px-6 py-3 text-sm font-bold text-white bg-orange-500 rounded-full shadow-md hover:bg-orange-600 transition-colors duration-200 flex-shrink-0"
+             >
+                SELECT
+            </button>
         </div>
-        <div className="flex items-center justify-between mt-6">
-          <p className="text-gray-600 font-semibold">
-            Price: <span className="font-bold text-gray-800">RWF {price.toLocaleString()}</span>
-          </p>
-          <button className="px-5 py-2 text-sm font-bold text-white bg-orange-500 rounded-full shadow-md hover:bg-orange-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-orange-400 focus:ring-opacity-75">
-            BOOK NOW
-          </button>
-        </div>
-      </div>
     </div>
   );
 };

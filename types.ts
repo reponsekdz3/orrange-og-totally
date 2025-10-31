@@ -1,17 +1,21 @@
-import React from 'react';
 
 export type FilterCategory = 'All' | 'Express' | 'Luxury' | 'Budget';
 
-export interface BusRoute {
+export interface Bus {
   id: number;
-  companyName: string;
-  companyLogo: React.ReactNode;
-  routeDisplay: string;
+  company: 'Volcano' | 'Onatracom' | 'Stella' | 'Generic';
   departureTime: string;
-  arrivalTime?: string;
-  duration?: string;
+  arrivalTime: string;
+  duration: string;
   price: number;
+  rating: number;
+  seatsAvailable: number;
   category: 'Express' | 'Luxury' | 'Budget';
-  timeOfDay: 'Morning' | 'Afternoon' | 'Evening';
-  amenities: string[];
+}
+
+export type SeatStatus = 'available' | 'booked' | 'selected';
+
+export interface Seat {
+  id: string;
+  status: SeatStatus;
 }
