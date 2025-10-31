@@ -1,6 +1,8 @@
 
+
 import React from 'react';
-import { Bus } from '../types';
+// Fix: Add '.ts' extension to the import path for 'types'.
+import { Bus } from '../types.ts';
 import { VolcanoLogo } from './icons/VolcanoLogo';
 import { OnatracomLogo } from './icons/OnatracomLogo';
 import { StellaLogo } from './icons/StellaLogo';

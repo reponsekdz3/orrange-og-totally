@@ -1,5 +1,7 @@
+
 import React from 'react';
-import { FilterCategory } from '../types';
+// Fix: Add '.ts' extension to the import path for 'types'.
+import { FilterCategory } from '../types.ts';
 import { StarIcon } from './icons/StarIcon';
 import { CloseIcon } from './icons/CloseIcon';
 import { TimeIcon } from './icons/TimeIcon';

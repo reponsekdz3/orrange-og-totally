@@ -1,17 +1,20 @@
 
+
 import React from 'react';
-import { Bus } from '../types';
+// Fix: Add '.ts' extension to the import path for 'types'.
+import { Bus } from '../types.ts';
 import { CheckIcon } from './icons/CheckIcon';
 
 interface BookingSummaryProps {
   selectedBus: Bus;
   selectedSeats: string[];
   onConfirm: () => void;
+  isPaymentPage?: boolean;
 }
 
 const SEAT_PRICE = 10; // Assuming a fixed price for simplicity
 
-export const BookingSummary: React.FC<BookingSummaryProps> = ({ selectedBus, selectedSeats, onConfirm }) => {
+export const BookingSummary: React.FC<BookingSummaryProps> = ({ selectedBus, selectedSeats, onConfirm, isPaymentPage = false }) => {
   const totalAmount = selectedSeats.length * SEAT_PRICE;
 
   return (
@@ -46,13 +49,15 @@ export const BookingSummary: React.FC<BookingSummaryProps> = ({ selectedBus, sel
           <span>E-ticket will be sent to your email</span>
         </div>
       </div>
-      <button 
-        onClick={onConfirm}
-        disabled={selectedSeats.length === 0}
-        className="w-full mt-6 px-8 py-4 text-lg font-bold text-white bg-orange-500 rounded-xl shadow-md hover:bg-orange-600 transition-colors duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed"
-      >
-        CONFIRM BOOKING
-      </button>
+      {!isPaymentPage && (
+        <button 
+          onClick={onConfirm}
+          disabled={selectedSeats.length === 0}
+          className="w-full mt-6 px-8 py-4 text-lg font-bold text-white bg-orange-500 rounded-xl shadow-md hover:bg-orange-600 transition-colors duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed"
+        >
+          CONFIRM BOOKING
+        </button>
+      )}
     </div>
   );
 };

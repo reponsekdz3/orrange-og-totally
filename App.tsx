@@ -1,5 +1,5 @@
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Header } from './components/Header';
 import { SubHeader } from './components/SubHeader';
 import { SearchBar } from './components/SearchBar';
@@ -7,94 +7,135 @@ import { FilterButtons } from './components/FilterButtons';
 import { AdvancedFilters } from './components/AdvancedFilters';
 import { BusList } from './components/BusList';
 import { SeatSelection } from './components/SeatSelection';
-import { FilterCategory, Bus } from './types';
+import { PaymentPage } from './components/PaymentPage';
+import { BookingConfirmationPage } from './components/BookingConfirmationPage';
+import { Bus, FilterCategory } from './types';
 
-const mockBuses: Bus[] = [
-  { id: 1, company: 'Volcano', departureTime: '07:00', arrivalTime: '09:30', duration: '2h 30m', price: 15, rating: 4.5, seatsAvailable: 23, category: 'Express' },
-  { id: 2, company: 'Onatracom', departureTime: '08:15', arrivalTime: '11:00', duration: '2h 45m', price: 12, rating: 4.2, seatsAvailable: 10, category: 'Budget' },
-  { id: 3, company: 'Stella', departureTime: '09:00', arrivalTime: '11:15', duration: '2h 15m', price: 18, rating: 4.8, seatsAvailable: 5, category: 'Luxury' },
-  { id: 4, company: 'Volcano', departureTime: '10:30', arrivalTime: '13:00', duration: '2h 30m', price: 15, rating: 4.4, seatsAvailable: 30, category: 'Express' },
-  { id: 5, company: 'Generic', departureTime: '13:00', arrivalTime: '16:00', duration: '3h 00m', price: 10, rating: 3.9, seatsAvailable: 40, category: 'Budget' },
-  { id: 6, company: 'Stella', departureTime: '14:00', arrivalTime: '16:15', duration: '2h 15m', price: 20, rating: 4.9, seatsAvailable: 12, category: 'Luxury' },
-  { id: 7, company: 'Onatracom', departureTime: '16:45', arrivalTime: '19:45', duration: '3h 00m', price: 11, rating: 4.1, seatsAvailable: 8, category: 'Budget' },
-  { id: 8, company: 'Volcano', departureTime: '18:00', arrivalTime: '20:30', duration: '2h 30m', price: 16, rating: 4.6, seatsAvailable: 15, category: 'Express' },
+const allBuses: Bus[] = [
+  { id: 1, company: 'Volcano', departureTime: '07:00', arrivalTime: '09:30', duration: '2h 30m', category: 'Express', rating: 4.5, price: 15.00, seatsAvailable: 25 },
+  { id: 2, company: 'Onatracom', departureTime: '08:15', arrivalTime: '11:00', duration: '2h 45m', category: 'Budget', rating: 3.8, price: 12.50, seatsAvailable: 40 },
+  { id: 3, company: 'Stella', departureTime: '09:30', arrivalTime: '12:00', duration: '2h 30m', category: 'Luxury', rating: 4.8, price: 20.00, seatsAvailable: 15 },
+  { id: 4, company: 'Volcano', departureTime: '10:00', arrivalTime: '12:30', duration: '2h 30m', category: 'Express', rating: 4.6, price: 15.00, seatsAvailable: 18 },
+  { id: 5, company: 'Ritco', departureTime: '11:45', arrivalTime: '14:30', duration: '2h 45m', category: 'Budget', rating: 3.5, price: 12.00, seatsAvailable: 35 },
+  { id: 6, company: 'Volcano', departureTime: '13:00', arrivalTime: '15:30', duration: '2h 30m', category: 'Luxury', rating: 4.9, price: 22.00, seatsAvailable: 10 },
+  { id: 7, company: 'Onatracom', departureTime: '14:30', arrivalTime: '17:15', duration: '2h 45m', category: 'Budget', rating: 3.9, price: 12.50, seatsAvailable: 22 },
+  { id: 8, company: 'Stella', departureTime: '16:00', arrivalTime: '18:30', duration: '2h 30m', category: 'Express', rating: 4.7, price: 16.00, seatsAvailable: 30 },
+  { id: 9, company: 'Volcano', departureTime: '18:00', arrivalTime: '20:30', duration: '2h 30m', category: 'Express', rating: 4.5, price: 15.00, seatsAvailable: 5 },
 ];
 
 const App: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [activeFilter, setActiveFilter] = useState<FilterCategory>('All');
   const [departureTime, setDepartureTime] = useState(1); // 0: Morning, 1: Afternoon, 2: Evening
+  const [filteredBuses, setFilteredBuses] = useState<Bus[]>(allBuses);
+
   const [selectedBus, setSelectedBus] = useState<Bus | null>(null);
+  const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
+  
+  const [view, setView] = useState<'list' | 'seats' | 'payment' | 'confirmation'>('list');
 
-  const filteredBuses = useMemo(() => {
-    return mockBuses.filter(bus => {
-      // Filter by category
-      if (activeFilter !== 'All' && bus.category !== activeFilter) {
-        return false;
-      }
-      
-      // Filter by departure time
+  useEffect(() => {
+    let buses = allBuses;
+    if (activeFilter !== 'All') {
+      buses = buses.filter(bus => bus.category === activeFilter);
+    }
+
+    if (searchTerm) {
+      // Simple search on company name for this example
+      buses = buses.filter(bus => bus.company.toLowerCase().includes(searchTerm.toLowerCase()));
+    }
+
+    // Filter by departure time
+    buses = buses.filter(bus => {
       const hour = parseInt(bus.departureTime.split(':')[0], 10);
-      if (departureTime === 0 && hour >= 12) return false; // Morning
-      if (departureTime === 1 && (hour < 12 || hour >= 18)) return false; // Afternoon
-      if (departureTime === 2 && hour < 18) return false; // Evening
-
-      // Filter by search term (mocking city name)
-      // For this demo, we assume the search term applies to all buses if not empty
-      // In a real app, this would filter based on departure/arrival locations
-      if (searchTerm && !'Kigali'.toLowerCase().includes(searchTerm.toLowerCase())) {
-          // This is a dummy check. A real app would have departure locations on the bus object.
-          // return false; 
-      }
-
+      if (departureTime === 0) return hour < 12; // Morning
+      if (departureTime === 1) return hour >= 12 && hour < 17; // Afternoon
+      if (departureTime === 2) return hour >= 17; // Evening
       return true;
     });
-  }, [activeFilter, departureTime, searchTerm]);
 
-  const handleClearFilters = () => {
-    setActiveFilter('All');
+    setFilteredBuses(buses);
+  }, [searchTerm, activeFilter, departureTime]);
+
+  const handleSelectBus = (bus: Bus) => {
+    setSelectedBus(bus);
+    setView('seats');
+  };
+
+  const handleSeatConfirm = (seats: string[]) => {
+    if (seats.length > 0) {
+      setSelectedSeats(seats);
+      setView('payment');
+    }
+  };
+
+  const handlePaymentSuccess = () => {
+    setView('confirmation');
+  };
+  
+  const handleBackToSeats = () => {
+    setView('seats');
+  };
+  
+  const handleCloseAndReset = () => {
+    setView('list');
+    setSelectedBus(null);
+    setSelectedSeats([]);
   };
 
   return (
     <div className="bg-gray-50 min-h-screen font-sans">
       <div 
-        className="absolute top-0 left-0 w-full h-[500px] bg-cover bg-center" 
-        style={{backgroundImage: "url('https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?q=80&w=2069&auto=format&fit=crop')"}}
+        className="absolute top-0 left-0 w-full h-[500px] bg-cover bg-center -z-10" 
+        style={{backgroundImage: "url('https://images.unsplash.com/photo-1570125909232-eb263c186f72?q=80&w=2070&auto=format&fit=crop')"}}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/30 to-gray-50/0"></div>
-        <div className="absolute inset-0 bg-gradient-to-t from-gray-50 via-gray-50/80 to-transparent"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-gray-50 to-transparent"></div>
       </div>
-      
-      <div className="relative container mx-auto px-4 py-8">
+
+      <div className="container mx-auto px-4 py-6">
         <Header />
-        <main>
+        <main className="mt-8">
           <SubHeader />
           <SearchBar searchTerm={searchTerm} setSearchTerm={setSearchTerm} />
           <FilterButtons activeFilter={activeFilter} setActiveFilter={setActiveFilter} />
-          <div className="bg-white/70 backdrop-blur-sm rounded-3xl shadow-lg -mt-8 pt-12 pb-6">
-             <AdvancedFilters 
+
+          <div className="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl -mt-8 pt-12 pb-8">
+            <AdvancedFilters
                 activeFilter={activeFilter}
                 departureTime={departureTime}
                 setDepartureTime={setDepartureTime}
-                onFilterClear={handleClearFilters}
-             />
-             <BusList buses={filteredBuses} onSelectBus={setSelectedBus} />
+                onFilterClear={() => setActiveFilter('All')}
+              />
+
+            <BusList buses={filteredBuses} onSelectBus={handleSelectBus} />
           </div>
         </main>
       </div>
 
-      {selectedBus && (
-        <SeatSelection bus={selectedBus} onClose={() => setSelectedBus(null)} />
+      {view === 'seats' && selectedBus && (
+        <SeatSelection
+          bus={selectedBus}
+          onClose={handleCloseAndReset}
+          onConfirm={handleSeatConfirm}
+        />
       )}
-       <style>{`
-        @keyframes fade-in-up {
-          from { opacity: 0; transform: translateY(20px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
-        .animate-fade-in-up {
-          animation: fade-in-up 0.5s ease-out forwards;
-        }
-      `}</style>
+
+      {view === 'payment' && selectedBus && (
+        <PaymentPage
+          bus={selectedBus}
+          selectedSeats={selectedSeats}
+          onBack={handleBackToSeats}
+          onPaymentSuccess={handlePaymentSuccess}
+        />
+      )}
+
+      {view === 'confirmation' && selectedBus && (
+         <BookingConfirmationPage
+          bus={selectedBus}
+          selectedSeats={selectedSeats}
+          onDone={handleCloseAndReset}
+        />
+      )}
     </div>
   );
 };

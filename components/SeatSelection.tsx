@@ -1,6 +1,8 @@
 
+
 import React, { useState } from 'react';
-import { Bus, Seat } from '../types';
+// Fix: Add '.ts' extension to the import path for 'types'.
+import { Bus, Seat } from '../types.ts';
 import { SeatMap } from './SeatMap';
 import { BookingSummary } from './BookingSummary';
 import { BookingCloseIcon } from './icons/BookingCloseIcon';
@@ -8,6 +10,7 @@ import { BookingCloseIcon } from './icons/BookingCloseIcon';
 interface SeatSelectionProps {
   bus: Bus;
   onClose: () => void;
+  onConfirm: (seats: string[]) => void;
 }
 
 // Helper to generate mock seats
@@ -31,7 +34,7 @@ const generateSeats = (totalSeats: number, bookedCount: number): Seat[] => {
 };
 
 
-export const SeatSelection: React.FC<SeatSelectionProps> = ({ bus, onClose }) => {
+export const SeatSelection: React.FC<SeatSelectionProps> = ({ bus, onClose, onConfirm }) => {
   const [seats, setSeats] = useState<Seat[]>(() => generateSeats(40, 15));
   const [selectedSeats, setSelectedSeats] = useState<string[]>([]);
 
@@ -57,8 +60,7 @@ export const SeatSelection: React.FC<SeatSelectionProps> = ({ bus, onClose }) =>
   };
 
   const handleConfirm = () => {
-    alert(`Booking confirmed for bus ${bus.company} for seats: ${selectedSeats.join(', ')}`);
-    onClose();
+    onConfirm(selectedSeats);
   };
 
   return (

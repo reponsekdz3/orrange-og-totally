@@ -1,6 +1,8 @@
 
+
 import React from 'react';
-import { Seat, SeatStatus } from '../types';
+// Fix: Add '.ts' extension to the import path for 'types'.
+import { Seat, SeatStatus } from '../types.ts';
 
 interface SeatMapProps {
   seats: Seat[];

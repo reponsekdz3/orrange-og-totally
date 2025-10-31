@@ -1,6 +1,8 @@
 
+
 import React from 'react';
-import { Bus } from '../types';
+// Fix: Add '.ts' extension to the import path for 'types'.
+import { Bus } from '../types.ts';
 import { BusCard } from './BusCard';
 
 interface BusListProps {
